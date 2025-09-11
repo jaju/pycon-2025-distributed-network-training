@@ -1,0 +1,47 @@
+[project]
+name = "distributed-training-workshop"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []
+
+[dependency-groups]
+common = [
+  "dotenv>=0.9.9",
+  "psutil>=7.0.0",
+  "rich>=14.1.0",
+  "seaborn>=0.13.2",
+  "tensorboard>=2.20.0",
+  "torch>=2.8.0",
+  "torchrun>=0.2.9",
+  "torchvision>=0.23.0",
+  "tqdm>=4.67.1",
+  "transformers>=4.56.1",
+]
+dev = [
+  "asitop>=0.0.24",
+  "autopep8>=2.3.2",
+  "black>=25.1.0",
+  "clang-format>=21.1.0",
+  "flake8>=7.3.0",
+  "grip>=4.6.2",
+  "isort>=6.0.1",
+  "nbformat>=5.10.4",
+  "neovim>=0.3.1",
+  "pillow>=11.3.0",
+  "pip>=25.2",
+  "pre-commit>=4.3.0",
+  "proselint>=0.14.0",
+  "pynput>=1.8.1",
+  "pynvim>=0.5.2",
+  "pyperclip>=1.9.0",
+  "pyrefly>=0.30.0",
+  "pytest>=8.4.1",
+  "pytest-cov>=6.2.1",
+  "python-lsp-ruff>=2.2.2",
+  "python-lsp-server[websockets,yapf]>=1.13.1",
+  "ruff>=0.12.11",
+  "twine>=6.1.0",
+  "yapf>=0.43.0",
+]
