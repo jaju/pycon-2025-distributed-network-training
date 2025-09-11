@@ -88,12 +88,15 @@ CIFAR-10 classes include:
 **NOTE**: Do NOT run via vanilla `python` or `torchrun` directly. Use `just` to ensure `.env` is read and env vars are set consistently.
 
 ### Step 0 - Baseline, Single Process
-- Basic: `just step0-basic`
-- Reference: `just step0-basic-reference --epochs 2 --scheduler cosine` # Example extra knob-arguments
+Basic: `just step0-basic`
+
+Reference (with example extra knob-arguments): `just step0-basic-reference --epochs 2 --scheduler cosine`
 
 ### Step 1 (manual dist)
 Basic: `just step1-dist`
+
 Reference (echo two commands): `just step1-dist-reference`
+
 Example output snippet:
 ```shell
 # Terminal 1 (process 0)
@@ -104,8 +107,11 @@ GLOO_SOCKET_IFNAME=lo0 BACKEND=gloo MPLCONFIGDIR=./.mplcache uv run python -m to
 ```
 
 ### Step 2 (DDP)
+
 Basic: `just step2-ddp`
+
 Reference: `just step2-ddp-reference`
+
 Example output snippet:
 ```shell
 # Terminal 1 (process 0)
@@ -116,7 +122,9 @@ GLOO_SOCKET_IFNAME=lo0 BACKEND=gloo MPLCONFIGDIR=./.mplcache uv run python -m to
 ```
 
 ### Step 3 (FSDP)
+
 Reference: `just step3-fsdp-reference --device cuda`
+
 Example output snippet:
 ```shell
 # Terminal 1 (process 0)
@@ -141,7 +149,7 @@ Copy/paste the echoed commands into two terminals exactly as shown. Rank 0 print
 - Step 0: Clean loss curve; metrics saved.
 - Step 1: Global validation metrics aggregated correctly; comm stats present.
 - Step 2: Higher throughput vs Step 1; speedup/efficiency computed vs baseline (magnitude depends on model/network/host).
-- Step 3: FSDP proxies (teach) or actual sharding performance (reference) with clear summaries.
+- Step 3: FSDP - sharding performance (reference-only) with clear summaries.
 
 ## After the Workshop
 
