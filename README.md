@@ -30,10 +30,12 @@ Restart your computer, then follow the Linux instructions below in your WSL term
 
 ## Setup (one time)
 
-1) Install deps: `just setup`
-2) Data download: `just download-data` (CIFAR‑10). Do this *BEFORE* coming to the workshop so we do not choke the WiFi.
-3) Quick check: `uv run python -c "import torch; print('torch', torch.__version__)"`
-4) Verify `uv` is on PATH: `uv --version`
+1) Copy the appropriate `.env.<os>` to `.env` (e.g., `.env.macos` or `.env.linux`).
+2) Verify `uv` is on PATH: `uv --version`
+3) Install deps: `just setup`
+4) Activate the Python virtual environment: `source .venv/bin/activate`
+5) Data download: `just download-data` (CIFAR‑10). Do this *BEFORE* coming to the workshop so we do not choke the WiFi.
+6) Quick check: `uv run python -c "import torch; print('torch', torch.__version__)"`
 
 ## Start TensorBoard (optional)
 
@@ -58,53 +60,71 @@ GLOO_SOCKET_IFNAME=lo   # Linux loopback (lo0 on macOS)
 # NCCL_SOCKET_IFNAME=eth0  # example for CUDA + NCCL on Ethernet
 ```
 
-## How to Run — TL;DR
-
-- Step 0 (teach): `just step0-basic --epochs 1 --scheduler none`
-- Step 0 (reference): `just step0-basic-reference --epochs 1 --scheduler none`
-
-- Step 1 (manual dist; echo two commands):
-  - Teach: `just step1-dist`
-  - Reference: `just step1-dist-reference`
-
-- Step 2 (DDP; echo two commands):
-  - Teach: `just step2-ddp`
-  - Reference: `just step2-ddp-reference`
-
-- Step 3 (FSDP):
-  - Teach simulate (single process): `just step3-fsdp --epochs 1 --device cpu --scheduler none`
-  - Reference (echo two commands): `just step3-fsdp-reference`
-
-Copy/paste the echoed commands into two terminals exactly as shown. Rank 0 prints and writes JSON/plots/TB.
-
-## Step Details
-
-### Step 0 — Baseline (single process)
-- ResNet‑18 on CIFAR‑10 (or synthetic fallback), clean loop, deterministic setup.
-- Expect one concise epoch summary; artifacts in `runs/` and `artifacts/`.
-
-### Step 1 — Manual Distributed (two terminals)
-- Naive per‑parameter all‑reduce after backward; no bucketing or overlap.
-- Echo commands:
-  - Teach: `just step1-dist`
-  - Reference: `just step1-dist-reference`
-- Expect comm_overhead and num_allreduces; proper global validation reductions.
-
-### Step 2 — DDP (two terminals)
-- Bucketing and overlap for efficient gradient sync.
-- Echo commands:
-  - Teach: `just step2-ddp`
-  - Reference: `just step2-ddp-reference`
-- Expect improved throughput vs Step 1 and speedup/efficiency vs a baseline.
-
-### Step 3 — FSDP
-- Teach simulate (single process): proxies only; verifies the mental model.
-- Reference (two terminals): real sharding (CPU/gloo or CUDA/NCCL) with structured metrics.
-
 ## Data
 
 - CIFAR‑10 (optional): `just download-data` (defaults to `./data`).
 - Synthetic data is on by default in teaching scripts and reference quick runs for fast iteration.
+
+### About the Dataset
+
+We use the CIFAR‑10 dataset for this workshop.
+
+CIFAR-10 and CIFAR-100 are standard benchmark datasets for image classification. They’re small, diverse, and great for trying out architectures like ResNet.
+
+| Dataset | #Images | Image Size | #Classes | Train / Test split | Extra structure |
+|---|---|---|---|---|---|
+| **CIFAR-10** | 60,000 total | 32×32 colour (RGB) | 10 classes | 50,000 train / 10,000 test | Uniform classes; handles e.g. airplane, car, bird, cat, deer, dog, frog, horse, ship, truck ([cs.toronto.edu](https://www.cs.toronto.edu/~kriz/cifar.html?utm_source=chatgpt.com)) |
+| **CIFAR-100** | 60,000 total | 32×32 colour (RGB) | 100 classes | 50,000 train / 10,000 test | Each image has a “fine” class (100) and a “coarse superclass” (20) grouping ([cs.toronto.edu](https://www.cs.toronto.edu/~kriz/cifar.html?utm_source=chatgpt.com)) |
+
+
+### 🎯 Example Classes
+
+CIFAR-10 classes include:
+> `airplane, automobile, bird, cat, deer, dog, frog, horse, ship, truck` ([geeksforgeeks.org](https://www.geeksforgeeks.org/deep-learning/cifar-10-image-classification-in-tensorflow/))
+
+
+## How to Run — TL;DR
+
+### Step 0 - Baseline, Single Process
+- Basic: `just step0-basic`
+- Reference: `just step0-basic-reference --epochs 2 --scheduler cosine` # Example extra knob-arguments
+
+### Step 1 (manual dist)
+Basic: `just step1-dist`
+Reference (echo two commands): `just step1-dist-reference`
+Example output snippet:
+```shell
+# Terminal 1 (process 0)
+GLOO_SOCKET_IFNAME=lo0 BACKEND=gloo MPLCONFIGDIR=./.mplcache uv run python -m torch.distributed.run --nproc_per_node=1 --nnodes=2 --node_rank=0 --master_addr=127.0.0.1 --master_port=29500 -m reference.simple_dist_train
+
+# Terminal 2 (process 1)
+GLOO_SOCKET_IFNAME=lo0 BACKEND=gloo MPLCONFIGDIR=./.mplcache uv run python -m torch.distributed.run --nproc_per_node=1 --nnodes=2 --node_rank=1 --master_addr=127.0.0.1 --master_port=29500 -m reference.simple_dist_train
+```
+
+### Step 2 (DDP)
+Basic: `just step2-ddp`
+Reference: `just step2-ddp-reference`
+Example output snippet:
+```shell
+# Terminal 1 (process 0)
+GLOO_SOCKET_IFNAME=lo0 BACKEND=gloo MPLCONFIGDIR=./.mplcache uv run python -m torch.distributed.run --nproc_per_node=1 --nnodes=2 --node_rank=0 --master_addr=127.0.0.1 --master_port=29500 -m reference.ddp_train
+
+# Terminal 2 (process 1)
+GLOO_SOCKET_IFNAME=lo0 BACKEND=gloo MPLCONFIGDIR=./.mplcache uv run python -m torch.distributed.run --nproc_per_node=1 --nnodes=2 --node_rank=1 --master_addr=127.0.0.1 --master_port=29500 -m reference.ddp_train
+```
+
+### Step 3 (FSDP)
+Reference: `just step3-fsdp-reference --device cuda`
+Example output snippet:
+```shell
+# Terminal 1 (process 0)
+GLOO_SOCKET_IFNAME=lo0 BACKEND=nccl MPLCONFIGDIR=./.mplcache uv run python -m torch.distributed.run --nproc_per_node=1 --nnodes=2 --node_rank=0 --master_addr=127.0.0.1 --master_port=29500 -m reference.fsdp_train --device cpu --device cuda
+
+# Terminal 2 (process 1)
+GLOO_SOCKET_IFNAME=lo0 BACKEND=nccl MPLCONFIGDIR=./.mplcache uv run python -m torch.distributed.run --nproc_per_node=1 --nnodes=2 --node_rank=1 --master_addr=127.0.0.1 --master_port=29500 -m reference.fsdp_train --device cpu --device cuda
+```
+
+Copy/paste the echoed commands into two terminals exactly as shown. Rank 0 prints and writes JSON/plots/TB.
 
 ## Troubleshooting (quick)
 
