@@ -85,6 +85,8 @@ CIFAR-10 classes include:
 
 ## How to Run — TL;DR
 
+**NOTE**: Do NOT run via vanilla `python` or `torchrun` directly. Use `just` to ensure `.env` is read and env vars are set consistently.
+
 ### Step 0 - Baseline, Single Process
 - Basic: `just step0-basic`
 - Reference: `just step0-basic-reference --epochs 2 --scheduler cosine` # Example extra knob-arguments
