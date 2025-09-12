@@ -62,8 +62,8 @@ GLOO_SOCKET_IFNAME=lo   # Linux loopback (lo0 on macOS)
 
 ## Data
 
-- CIFAR‑10 (optional): `just download-data` (defaults to `./data`).
-- Synthetic data is on by default in teaching scripts and reference quick runs for fast iteration.
+- CIFAR‑10: `just download-data` (defaults to `./data`).
+- Synthetic data is on by default in teaching scripts and reference quick runs for fast iteration. This is a fallback if you cannot download CIFAR‑10.
 
 ### About the Dataset
 
