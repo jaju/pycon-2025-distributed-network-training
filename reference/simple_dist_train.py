@@ -143,6 +143,29 @@ def _broadcast_model_buffers(model, src: int = 0) -> None:
                 buf.copy_(tmp.to(orig_device))
 
 
+def _broadcast_model_params(model, src: int = 0) -> None:
+    """Broadcast initial model parameters so all ranks start identically.
+
+    For CUDA+NCCL we broadcast in-place on device. For other backends/devices,
+    we round-trip through CPU to ensure the collective succeeds.
+    """
+    import torch
+    import torch.distributed as dist
+
+    backend = str(dist.get_backend()).lower()
+    with torch.no_grad():
+        for p in model.parameters():
+            if p is None:
+                continue
+            orig_device = p.device
+            if backend == "nccl" and orig_device.type == "cuda":
+                dist.broadcast(p.data, src=src)
+            else:
+                tmp = p.data.detach().to("cpu")
+                dist.broadcast(tmp, src=src)
+                p.data.copy_(tmp.to(orig_device))
+
+
 def prepare_data(cfg: TrainingConfig, rank: int, world_size: int):
     try:
         import torch.utils.data as data
@@ -538,6 +561,9 @@ def main(argv: list[str] | None = None) -> int:
 
     rank, world_size = setup_dist(backend=os.getenv("BACKEND", "gloo"))
     model, criterion, optimizer, device = prepare_model_and_optimizer(cfg)
+    # Ensure identical initialization across ranks for manual sync training
+    if world_size > 1:
+        _broadcast_model_params(model, src=0)
     ctx = RuntimeContext(
         rank=rank, world_size=world_size, device=device, backend=str(dist.get_backend())
     )

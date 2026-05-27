@@ -343,6 +343,7 @@ def _wrap_with_fsdp(model: Any, cfg: TrainingConfig, ctx: RuntimeContext):
         device_id=(
             ctx.device.index if getattr(ctx.device, "type", "cpu") == "cuda" else None
         ),
+        sync_module_states=True,
         sharding_strategy=_fsdp_sharding(cfg),
         auto_wrap_policy=_fsdp_auto_wrap(cfg),
         mixed_precision=_fsdp_mixed_precision_policy(cfg),

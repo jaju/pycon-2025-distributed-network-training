@@ -116,9 +116,7 @@ def create_ddp_model(
 
     ddp_kwargs: dict = {
         "find_unused_parameters": bool(cfg.ddp.find_unused_parameters),
-        "broadcast_buffers": True
-        if getattr(ctx.device, "type", "cpu") == "cuda"
-        else False,
+        "broadcast_buffers": True,
         "static_graph": bool(cfg.ddp.static_graph),
         "bucket_cap_mb": int(cfg.ddp.bucket_cap_mb)
         if int(cfg.ddp.bucket_cap_mb) > 0
